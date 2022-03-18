@@ -1,11 +1,9 @@
-name: Docker Publish
+name: Publish
 
-on:
-  push:
-    branches: [main]
+on: push
 
 jobs:
-  build_and_push:
+  build_and_publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,8 +23,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
+          push: ${{ github.ref == 'refs/heads/main' }}
           context: .
-          push: true
           tags: ghcr.io/spiralp/https-dns-proxy:latest
 
       - name: Copy apk out of image
@@ -34,9 +32,11 @@ jobs:
           set -ex \
             && docker create --name temp ghcr.io/spiralp/https-dns-proxy:latest \
             && docker cp temp:/packages . \
-            && docker rm temp
+            && docker rm temp \
+            && find ./packages/ -name '*.apk' -print0 | xargs -0 sha256sum
 
       - name: Release apk
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: packages/community/x86_64/https-dns-proxy-*.apk
