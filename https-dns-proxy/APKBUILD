@@ -1,0 +1,32 @@
+pkgname=https-dns-proxy
+pkgver=0_git20210927
+pkgrel=0
+_commit=da2501f542a732167a78f1851a511d9c0abc2fd8
+pkgdesc="A lightweight DNS-over-HTTPS proxy"
+url="https://github.com/aarond10/https_dns_proxy"
+arch="all"
+license="MIT"
+depends="c-ares libcurl libev"
+makedepends="cmake c-ares-dev curl-dev libev-dev"
+options="!check"
+source="$pkgname-$_commit.tar.gz::https://github.com/aarond10/https_dns_proxy/archive/$_commit.tar.gz
+	https-dns-proxy.initd"
+builddir="$srcdir/https_dns_proxy-$_commit"
+
+build() {
+	cmake -B . \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build .
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install .
+	rm "$pkgdir"/usr/lib/systemd/system/https_dns_proxy.service
+	mv "$pkgdir"/usr/bin/https_dns_proxy "$pkgdir"/usr/bin/https-dns-proxy
+	install -Dm755 "$srcdir"/https-dns-proxy.initd "$pkgdir"/etc/init.d/https-dns-proxy
+}
+
+sha512sums="
+5b39f08398400a49e6ae338e2af5d8ffea7f00f3dd700039e4536d15999e3cb54f84939ed22fdfc354397759f8b41aba7a74c3ffb2d2c2d1a73e31c2ee729f31  https-dns-proxy-da2501f542a732167a78f1851a511d9c0abc2fd8.tar.gz
+3ea6708fcdf87c9c43b5917d9173fb6e3e3c611e319dc629e6cbb2b07ccfee54e6292d6bf95118aeed51fac8f0facb4c3307ad99bac6093855f2b41bff74cbc1  https-dns-proxy.initd
+"

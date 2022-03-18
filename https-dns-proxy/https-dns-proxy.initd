@@ -1,0 +1,12 @@
+#!/sbin/openrc-run
+
+name="https-dns-proxy"
+description="A lightweight DNS-over-HTTPS proxy"
+
+command=/usr/bin/https-dns-proxy
+command_args="-d -v -a 127.0.0.1 -p 53 -u nobody -g nogroup -r https://1.1.1.1/dns-query"
+
+depend() {
+	need net
+	provide dns
+}
