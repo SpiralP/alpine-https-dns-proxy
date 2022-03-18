@@ -28,3 +28,15 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/spiralp/https-dns-proxy:latest
+
+      - name: Copy apk out of image
+        run: |
+          set -ex \
+            && docker create --name temp ghcr.io/spiralp/https-dns-proxy:latest \
+            && docker cp temp:/packages . \
+            && docker rm temp
+
+      - name: Release apk
+        uses: softprops/action-gh-release@v1
+        with:
+          files: packages/community/x86_64/https-dns-proxy-*.apk
