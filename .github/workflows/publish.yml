@@ -17,12 +17,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{ github.repository }}
+
+      - name: Build and Push
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.ref == 'refs/heads/main' }}
           context: .
-          tags: ghcr.io/spiralp/https-dns-proxy:latest
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Delete old images
         uses: snok/container-retention-policy@v1
@@ -37,7 +45,7 @@ jobs:
       - name: Copy apk out of image
         run: |
           set -ex \
-            && docker create --name temp ghcr.io/spiralp/https-dns-proxy:latest \
+            && docker create --name temp ${{ steps.meta.outputs.tags }} \
             && docker cp temp:/packages . \
             && docker rm temp \
             && find ./packages/ -name '*.apk' -print0 | xargs -0 sha256sum
