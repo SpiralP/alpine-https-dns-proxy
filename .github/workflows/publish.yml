@@ -24,6 +24,16 @@ jobs:
           context: .
           tags: ghcr.io/spiralp/https-dns-proxy:latest
 
+      - name: Delete old images
+        uses: snok/container-retention-policy@v1
+        with:
+          image-names: ${{ github.event.repository.name }}
+          cut-off: 1 second ago UTC
+          timestamp-to-use: updated_at
+          account-type: personal
+          token: ${{ secrets.TOKEN }}
+          untagged-only: true
+
       - name: Copy apk out of image
         run: |
           set -ex \
